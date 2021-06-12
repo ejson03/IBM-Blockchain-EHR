@@ -28,10 +28,7 @@ export const registerPatient = async (req: Request, res: Response) => {
   req.body.patientId = patientId;
   const KVPairs = util.generateKVAttributes(req.body);
   //check weather he is registered already or not
-  let networkObj = await network.connectToNetwork(
-    config.patientAdmin,
-    patientOrg
-  );
+  let networkObj = await network.connectToNetwork("admin", patientOrg);
   const check = await network.invoke(
     networkObj,
     true,
@@ -43,21 +40,18 @@ export const registerPatient = async (req: Request, res: Response) => {
   if (!(Object.keys(parsedCheck).length === 0)) {
     res.send({ error: "The patient is already registered" });
   }
-  //first create the identity for the patient and add to walconst
   const response = await network.register(req.body.name, KVPairs, patientOrg);
-  console.log("response from registerPatient: ", response);
+  console.log("Response from registerPatient: ", response);
   if ((response as any).error) {
     res.send((response as any).error);
   } else {
-    networkObj = await network.connectToNetwork(patientId, patientOrg);
+    networkObj = await network.connectToNetwork(req.body.name, patientOrg);
 
     if ((networkObj as any).error) {
       res.send((networkObj as any).error);
     }
     req.body = JSON.stringify(req.body);
     const args = [req.body];
-    //connect to network and update the state
-
     const invokeResponse = await network.invoke(
       networkObj,
       false,
@@ -68,10 +62,9 @@ export const registerPatient = async (req: Request, res: Response) => {
     if (invokeResponse.error) {
       res.send(invokeResponse.error);
     } else {
-      console.log("after network.invoke ");
+      console.log("after network.invoke,  ", invokeResponse);
       const parsedResponse = JSON.parse(invokeResponse);
       parsedResponse.Success += `. Use patientId ${patientId} and password secret99 to login above.`;
-
       res.send(parsedResponse);
     }
   }

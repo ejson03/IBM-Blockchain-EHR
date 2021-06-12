@@ -10,14 +10,22 @@ export async function connectToWallet(orgName: string) {
   return await Wallets.newFileSystemWallet(walletPath);
 }
 
-export async function connectToGateway(wallet: Wallet, identity: string) {
+export async function connectToGateway(
+  wallet: Wallet,
+  identity: string,
+  orgName: string
+) {
   const gateway = new Gateway();
   const connectionOptions: GatewayOptions = {
     wallet: wallet,
     identity: identity,
     discovery: config.gatewayDiscovery,
   };
-  await gateway.connect(config.ccp, connectionOptions);
+  if (orgName == "Org1") {
+    await gateway.connect(config.ccpOrg1, connectionOptions);
+  } else {
+    await gateway.connect(config.ccpOrg2, connectionOptions);
+  }
   return gateway;
 }
 
@@ -30,13 +38,23 @@ export function getAdminByOrg(orgName: string) {
 }
 
 export function getAffiliation(orgName: string) {
-  return orgName == "Org1" ? "org1.department1" : "org2.department1";
+  return orgName == "Org1" ? "org1.department1" : "org2.departemnt1";
 }
 
-export function getCaURL(orgName: string) {
+export function getCaInfo(orgName: string) {
   return orgName == "Org1"
-    ? config.ccp.certificateAuthorities["org1ca-api.127-0-0-1.nip.io:8081"].url
-    : config.ccp.certificateAuthorities["org2ca-api.127-0-0-1.nip.io:8081"].url;
+    ? {
+        url: config.ccpOrg1.certificateAuthorities[
+          "org1ca-api.127-0-0-1.nip.io:8081"
+        ].url,
+        // name: "Org1 CA",
+      }
+    : {
+        url: config.ccpOrg2.certificateAuthorities[
+          "org2ca-api.127-0-0-1.nip.io:8081"
+        ].url,
+        // name: "Org2 CA",
+      };
 }
 
 export async function userExists(userName: string, wallet: Wallet) {
@@ -61,8 +79,8 @@ export async function userExists(userName: string, wallet: Wallet) {
 }
 
 export function getCA(orgName: string) {
-  const caURL = getCaURL(orgName);
-  return new FabricCAServices(caURL);
+  const ca = getCaInfo(orgName);
+  return new FabricCAServices(ca.url);
 }
 
 export async function connectToNetwork(userName: string, orgName: string) {
@@ -80,12 +98,12 @@ export async function connectToNetwork(userName: string, orgName: string) {
           " first",
       };
     }
-    const gateway = await connectToGateway(wallet, userName);
+    const gateway = await connectToGateway(wallet, userName, orgName);
     // Connect to our local fabric
     const network = await gateway.getNetwork("mychannel");
     console.log("Connected to mychannel. ");
     // Get the contract we have installed on the peer
-    const contract = await network.getContract("contract");
+    const contract = network.getContract("contract");
     const networkObj = {
       contract: contract,
       network: network,
@@ -110,12 +128,16 @@ export async function invoke(
   args: any
 ) {
   try {
-    console.log("inside invoke");
     console.log(`isQuery: ${isQuery}, func: ${func}, args: ${args}`);
     if (isQuery === true) {
+      console.log("Query");
       if (args) {
-        // args = JSON.parse(args[0]);c
-        // args = JSON.stringify(args);
+        try {
+          args = JSON.parse(args[0]);
+          args = JSON.stringify(args);
+        } catch {
+          args = args;
+        }
         const response = await networkObj.contract.evaluateTransaction(
           func,
           args
@@ -127,50 +149,39 @@ export async function invoke(
         const response = await networkObj.contract.evaluateTransaction(func);
         console.log(response);
         console.log(`Transaction ${func} without args has been evaluated`);
-
         await networkObj.gateway.disconnect();
-
         return response;
       }
     } else {
       console.log("notQuery");
       if (args) {
-        console.log("notQuery, args");
-        console.log("$$$$$$$$$$$$$ args: ");
-        console.log(args);
-        console.log(func);
-        console.log(typeof args);
-
-        args = JSON.parse(args[0]);
-
-        args = JSON.stringify(args);
-
-        console.log("before submit");
+        try {
+          args = JSON.parse(args[0]);
+          args = JSON.stringify(args);
+        } catch {
+          args = args;
+        }
+        console.log("before submit ");
         const response = await networkObj.contract.submitTransaction(
           func,
           args
         );
         console.log("after submit");
-
         console.log(response);
         console.log(`Transaction ${func} with args ${args} has been submitted`);
-
         await networkObj.gateway.disconnect();
-
         return response;
       } else {
         const response = await networkObj.contract.submitTransaction(func);
         console.log(response);
         console.log(`Transaction ${func} with args has been submitted`);
-
         await networkObj.gateway.disconnect();
-
         return response;
       }
     }
   } catch (error) {
     console.error(`Failed to submit transaction: ${error}`);
-    return error;
+    return { error: error };
   }
 }
 
@@ -181,11 +192,11 @@ export async function createUser(
   wallet: Wallet
 ) {
   const ca = getCA(orgName);
-  const adminName = getAdminByOrg(orgName);
-  const adminId = await wallet.get(adminName);
+  // const adminName = getAdminByOrg(orgName);
+  const adminId = await wallet.get("admin");
   if (!adminId) throw new Error("Failed to get admin");
   const provider = wallet.getProviderRegistry().getProvider(adminId.type);
-  const adminUser = await provider.getUserContext(adminId, adminName);
+  const adminUser = await provider.getUserContext(adminId, "admin");
   let secret;
   try {
     secret = await ca.register(
@@ -198,8 +209,7 @@ export async function createUser(
       adminUser
     );
   } catch (error) {
-    console.log(error.message);
-    return error.message;
+    return error;
   }
   const enrollment = await ca.enroll({
     enrollmentID: userName,
@@ -213,7 +223,7 @@ export async function createUser(
     mspId: `${orgName}MSP`,
     type: "X.509",
   };
-  await wallet.put(userName, x509Identity);
+  return await wallet.put(userName, x509Identity);
 }
 
 export async function register(
@@ -234,22 +244,53 @@ export async function register(
       };
     }
     // Check to see if we've already enrolled the admin user.
-    const ifAdmin = await userExists(getAdminByOrg(orgName), wallet);
+    const ifAdmin = await userExists("admin", wallet);
     if (!ifAdmin) {
       return {
         error: `An identity for the admin user ${config.patientAdmin} does not exist in the wallet. `,
       };
     }
-    await createUser(username, orgName, attrs, wallet);
-    console.log(`Successfully registered Patient ${username}.`);
-    const response = `Successfully registered ${getTypeByOrg(
-      orgName
-    )} ${username}`;
-    return response;
+    const result = await createUser(username, orgName, attrs, wallet);
+    try {
+      throw new Error(result.message);
+    } catch {
+      console.log(`Successfully registered Patient ${username}.`);
+      const response = `Successfully registered ${getTypeByOrg(
+        orgName
+      )} ${username}`;
+      return response;
+    }
   } catch (error) {
     console.error(
       `Failed to register ${getTypeByOrg(orgName)} ${username} : ${error}`
     );
     return { error: error };
+  }
+}
+
+export async function enrollAdmin(orgName: string) {
+  try {
+    const wallet = await connectToWallet(orgName);
+    const ifAdmin = await userExists("admin", wallet);
+    if (ifAdmin) {
+      throw new Error(`Admin already exist for ${orgName} `);
+    }
+    const ca = getCA(orgName);
+    const enrollment = await ca.enroll({
+      enrollmentID: "admin",
+      enrollmentSecret: "adminpw",
+    });
+    const x509Identity = {
+      credentials: {
+        certificate: enrollment.certificate,
+        privateKey: enrollment.key.toBytes(),
+      },
+      mspId: `${orgName}MSP`,
+      type: "X.509",
+    };
+    console.log(`Succesfulyy register admin for ${orgName}`);
+    return await wallet.put("admin", x509Identity);
+  } catch (error) {
+    console.log(error);
   }
 }

@@ -1,5 +1,7 @@
 {
     "connectionFile": "connection.json",
+    "connectionOrg1": "org1.json",
+    "connectionOrg2": "org2.json",
     "patientAdmin": "Org1 Admin",
     "doctorAdmin": "Org2 Admin",
     "appAdminSecret": "adminpw",
