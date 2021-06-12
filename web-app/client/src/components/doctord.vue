@@ -117,7 +117,7 @@ async mounted() {
     // console.log("created");
     // this.x = 99;
 
-    let res = await axios.get('http://localhost:8080/getPatients');
+    let res = await axios.get('http://localhost:5000/getPatients');
 
     let data = res.data;
     this.patientdatas = data;
@@ -126,14 +126,14 @@ async mounted() {
  
 
     
-    let res1 = await axios.get('http://localhost:8080/getDoctors');
+    let res1 = await axios.get('http://localhost:5000/getDoctors');
 
     let data1 = res1.data;
     this.doctordatas = data1;
     console.log("this is doctor data")
    console.log(data1)
 
-    let res2 = await axios.get('http://localhost:8080/getReports');
+    let res2 = await axios.get('http://localhost:5000/getReports');
     this.reports=res2.data;
     console.log("these are pid in reports")
      console.log(this.reports[0].Record.patientId)
@@ -192,7 +192,7 @@ async mounted() {
                  reportId : this.reportid 
           }
 
-          let res = await axios.post('http://localhost:8080/requestAccess',params);
+          let res = await axios.post('http://localhost:5000/requestAccess',params);
           console.log(res.data)
           this.serverresponse = res.data;
        
@@ -200,7 +200,7 @@ async mounted() {
      async r(e){
        e.preventDefault();
        console.log("refresh pressed")
-       let res = await axios.get('http://localhost:8080/getReports');
+       let res = await axios.get('http://localhost:5000/getReports');
        this.reports=res.data;
        console.log("new reports updated")
         // this.patid
@@ -227,7 +227,7 @@ async mounted() {
                   reportId : this.filter
             }
 
-           await axios.post('http://localhost:8080/resetAccess',params);
+           await axios.post('http://localhost:5000/resetAccess',params);
            console.log("post done")
           }
        }
@@ -244,7 +244,7 @@ async mounted() {
                  reportId : this.filter
           }
 
-           await axios.post('http://localhost:8080/resetAccess',params);
+           await axios.post('http://localhost:5000/resetAccess',params);
           //  let res =
          
 

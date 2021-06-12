@@ -86,7 +86,7 @@ export default {
         //          pswd : this.x 
         //   }
 
-        //   let res = await axios.post('http://localhost:8080/validatePatient',params);
+        //   let res = await axios.post('http://localhost:5000/validatePatient',params);
         //   this.objj=res.data;
         //   let x = this.objj.Success;
 

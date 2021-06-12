@@ -88,7 +88,7 @@ export default {
     // console.log("created");
     // this.x = 99;
 
-    let res = await axios.get('http://localhost:8080/getPatients');
+    let res = await axios.get('http://localhost:5000/getPatients');
 
     let data = res.data;
     this.patientdatas = data;
@@ -97,7 +97,7 @@ export default {
  
 
     
-    let res1 = await axios.get('http://localhost:8080/getDoctors');
+    let res1 = await axios.get('http://localhost:5000/getDoctors');
 
     let data1 = res1.data;
     this.doctordatas = data1;
@@ -130,7 +130,7 @@ export default {
               formData.append('file' , this.file)
               console.log("this is after object")
               console.log(formData)
-              axios.post('http://localhost:8080/getReport' , this.file)
+              axios.post('http://localhost:5000/getReport' , this.file)
              .then(res => console.log(res.data))
         
             .catch(e => {

@@ -3,8 +3,7 @@
 import { Gateway, Wallet, Wallets, GatewayOptions } from "fabric-network";
 import * as path from "path";
 import * as config from "../config";
-import { IKeyValueAttribute } from "fabric-ca-client";
-import Client from "fabric-client";
+import FabricCAServices, { IKeyValueAttribute } from "fabric-ca-client";
 
 export async function connectToWallet(orgName: string) {
   const walletPath = path.join(process.cwd(), "wallet", orgName);
@@ -30,9 +29,18 @@ export function getAdminByOrg(orgName: string) {
   return orgName == "Org1" ? config.patientAdmin : config.doctorAdmin;
 }
 
+export function getAffiliation(orgName: string) {
+  return orgName == "Org1" ? "org1.department1" : "org2.department1";
+}
+
+export function getCaURL(orgName: string) {
+  return orgName == "Org1"
+    ? config.ccp.certificateAuthorities["org1ca-api.127-0-0-1.nip.io:8081"].url
+    : config.ccp.certificateAuthorities["org2ca-api.127-0-0-1.nip.io:8081"].url;
+}
+
 export async function userExists(userName: string, wallet: Wallet) {
   const user = await wallet.get(userName);
-  console.log(user);
   if (userName.toLowerCase().includes("admin")) {
     if (!user) {
       console.log(
@@ -50,6 +58,11 @@ export async function userExists(userName: string, wallet: Wallet) {
     }
     return false;
   }
+}
+
+export function getCA(orgName: string) {
+  const caURL = getCaURL(orgName);
+  return new FabricCAServices(caURL);
 }
 
 export async function connectToNetwork(userName: string, orgName: string) {
@@ -99,24 +112,16 @@ export async function invoke(
   try {
     console.log("inside invoke");
     console.log(`isQuery: ${isQuery}, func: ${func}, args: ${args}`);
-
     if (isQuery === true) {
-      console.log("inside isQuery");
-
       if (args) {
-        console.log("inside isQuery, args");
-        args = JSON.parse(args[0]);
-        args = JSON.stringify(args);
-        console.log(args);
+        // args = JSON.parse(args[0]);c
+        // args = JSON.stringify(args);
         const response = await networkObj.contract.evaluateTransaction(
           func,
           args
         );
-        console.log(response);
         console.log(`Transaction ${func} with args ${args} has been evaluated`);
-
         await networkObj.gateway.disconnect();
-
         return response;
       } else {
         const response = await networkObj.contract.evaluateTransaction(func);
@@ -171,49 +176,44 @@ export async function invoke(
 
 export async function createUser(
   userName: string,
-  organisation: string,
+  orgName: string,
   attrs: IKeyValueAttribute[],
   wallet: Wallet
 ) {
-  const gateway = await connectToGateway(wallet, userName);
-  const client = new Client();
-  // first check to see if the admin is already enrolled
-  const admin_user = await client.getUserContext(
-    getAdminByOrg(organisation),
-    true
-  );
-
-  if (!(admin_user && admin_user.isEnrolled()))
-    throw new Error("Failed to get admin");
-
-  const ca_client = client.getCertificateAuthority();
-  // at this point we should have the admin user
-  // first need to register the user with the CA server
-  const secret = await ca_client.register(
-    {
-      enrollmentID: userName,
-      attrs: attrs,
-      role: "client",
-      affiliation: organisation,
-    },
-    admin_user
-  );
-  // next we need to enroll the user with CA server
-  const enrollment = await ca_client.enroll({
+  const ca = getCA(orgName);
+  const adminName = getAdminByOrg(orgName);
+  const adminId = await wallet.get(adminName);
+  if (!adminId) throw new Error("Failed to get admin");
+  const provider = wallet.getProviderRegistry().getProvider(adminId.type);
+  const adminUser = await provider.getUserContext(adminId, adminName);
+  let secret;
+  try {
+    secret = await ca.register(
+      {
+        affiliation: getAffiliation(orgName),
+        enrollmentID: userName,
+        role: "client",
+        attrs: attrs,
+      },
+      adminUser
+    );
+  } catch (error) {
+    console.log(error.message);
+    return error.message;
+  }
+  const enrollment = await ca.enroll({
     enrollmentID: userName,
     enrollmentSecret: secret,
   });
-  // Create the Given User
-  const user = await client.createUser({
-    username: userName,
-    skipPersistence: true,
-    mspid: organisation + "MSP",
-    cryptoContent: {
-      privateKeyPEM: enrollment.key.toBytes(),
-      signedCertPEM: enrollment.certificate,
+  const x509Identity = {
+    credentials: {
+      certificate: enrollment.certificate,
+      privateKey: enrollment.key.toBytes(),
     },
-  });
-  return await client.setUserContext(user);
+    mspId: `${orgName}MSP`,
+    type: "X.509",
+  };
+  await wallet.put(userName, x509Identity);
 }
 
 export async function register(
@@ -234,7 +234,7 @@ export async function register(
       };
     }
     // Check to see if we've already enrolled the admin user.
-    const ifAdmin = await userExists(config.patientAdmin, wallet);
+    const ifAdmin = await userExists(getAdminByOrg(orgName), wallet);
     if (!ifAdmin) {
       return {
         error: `An identity for the admin user ${config.patientAdmin} does not exist in the wallet. `,

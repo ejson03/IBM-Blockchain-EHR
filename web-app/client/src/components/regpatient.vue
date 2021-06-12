@@ -93,7 +93,7 @@ export default {
             console.log(newTodo)
             //construct object and emmit to parent
             // this.$emit('add-todo', newTodo);
-            axios.post('http://localhost:8080/registerPatient', {
+            axios.post('http://localhost:5000/registerPatient', {
                      name: this.patientname,
                 age : this.age ,
                 adharNo : this.patientadno ,

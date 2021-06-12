@@ -12,7 +12,6 @@ export const test = async (_req: Request, res: Response) => {
     config.patientAdmin,
     patientOrg
   );
-  console.info(networkObj);
   const response = await network.invoke(
     networkObj,
     true,
@@ -37,34 +36,24 @@ export const registerPatient = async (req: Request, res: Response) => {
     networkObj,
     true,
     "checkExist",
-    req.body.adharNo
+    req.body.name
   );
   const parsedCheck = await JSON.parse(check);
-  console.log(parsedCheck);
+  console.log("User exists response ", parsedCheck);
   if (!(Object.keys(parsedCheck).length === 0)) {
     res.send({ error: "The patient is already registered" });
   }
   //first create the identity for the patient and add to walconst
-  const response = await network.register(
-    req.body.username,
-    KVPairs,
-    patientOrg
-  );
-  console.log("response from registerPatient: ");
-  console.log(response);
+  const response = await network.register(req.body.name, KVPairs, patientOrg);
+  console.log("response from registerPatient: ", response);
   if ((response as any).error) {
     res.send((response as any).error);
   } else {
-    console.log("req.body.adharNo");
-    console.log(req.body.adharNo);
     networkObj = await network.connectToNetwork(patientId, patientOrg);
-    console.log("networkobj: ");
-    console.log(networkObj);
 
     if ((networkObj as any).error) {
       res.send((networkObj as any).error);
     }
-
     req.body = JSON.stringify(req.body);
     const args = [req.body];
     //connect to network and update the state
@@ -128,11 +117,7 @@ export const registerDoctor = async (req: Request, res: Response) => {
   req.body.doctorId = doctorId;
   const KVPairs = util.generateKVAttributes(req.body);
   //first create the identity for the patient and add to walconst
-  const response = await network.register(
-    req.body.username,
-    KVPairs,
-    doctorOrg
-  );
+  const response = await network.register(req.body.name, KVPairs, doctorOrg);
   console.log("response from registerDoctor: ");
   console.log(response);
   if ((response as any).error) {

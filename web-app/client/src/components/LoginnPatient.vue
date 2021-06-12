@@ -83,7 +83,7 @@ export default {
     // console.log("created");
     // this.x = 99;
 
-    let res = await axios.get('http://localhost:8080/getPatients');
+    let res = await axios.get('http://localhost:5000/getPatients');
 
     let data = res.data;
     this.patientdatas = data;
@@ -92,14 +92,14 @@ export default {
  
 
     
-//     let res1 = await axios.get('http://localhost:8080/getDoctors');
+//     let res1 = await axios.get('http://localhost:5000/getDoctors');
 
 //     let data1 = res1.data;
 //     this.doctordatas = data1;
 //     console.log("this is doctor data")
 //    console.log(data1)
 
-    let res2 = await axios.get('http://localhost:8080/getReports');
+    let res2 = await axios.get('http://localhost:5000/getReports');
     this.reports=res2.data;
     console.log("these are reports")
     console.log()
@@ -168,12 +168,12 @@ export default {
                  pswd : this.password 
           }
 
-          let res = await axios.post('http://localhost:8080/validatePatient',params);
+          let res = await axios.post('http://localhost:5000/validatePatient',params);
           this.objj=res.data;
           let x = this.objj.Success;
         //   console.log()
 
-        //   axios.post('http://localhost:8080/validatePatient', {
+        //   axios.post('http://localhost:5000/validatePatient', {
         //         patientId: this.username,
         //         pswd : this.password ,
             
@@ -235,7 +235,7 @@ export default {
                  reportId : this.reports[l].Record.reportId
           }
 
-          let res = await axios.post('http://localhost:8080/grantAccess',params);
+          let res = await axios.post('http://localhost:5000/grantAccess',params);
          console.log(res.data)
          this.gmsg=res.data
 
@@ -253,7 +253,7 @@ export default {
                  reportId : this.reports[l].Record.reportId
           }
 
-          let res = await axios.post('http://localhost:8080/rejectAccess',params);
+          let res = await axios.post('http://localhost:5000/rejectAccess',params);
          console.log(res.data)
           this.rmsg=res.data;
            console.log(("Rejected"))
