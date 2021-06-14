@@ -11,34 +11,22 @@ export interface IDoctor {
 
 @Object()
 export class Doctor {
-    /**
-     *
-     * Doctor
-     *
-     * Constructor for a Doctor object.
-     *
-     * @param args.licenseId - the license number of the Doctor
-     * @param args.name - name of Doctor
-     * @param args.age - age of Doctor
-     * @param args.phNo - phone number of Doctor
-     * @returns - doctor object
-     */
-    // @Property()
+    @Property()
     public doctorId: string;
 
-    // @Property()
+    @Property()
     public licenseId: string;
 
-    // @Property()
+    @Property()
     public name: string;
 
-    // @Property()
+    @Property()
     public age: string;
 
-    // @Property()
+    @Property()
     public phNo: string;
 
-    // @Property()
+    @Property()
     public type: string;
 
     constructor(

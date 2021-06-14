@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ccpOrg2 = exports.ccpOrg1 = exports.ccp = exports.orgMSPID_doc = exports.orgMSPID_pat = exports.doctorAdmin = exports.patientAdmin = exports.gatewayDiscovery = exports.org2ConnectionFile = exports.org1ConnectionFile = exports.connection_file = exports.config = void 0;
+exports.ccpOrg2 = exports.ccpOrg1 = exports.orgMSPID_doc = exports.orgMSPID_pat = exports.doctorAdmin = exports.patientAdmin = exports.gatewayDiscovery = exports.org2ConnectionFile = exports.org1ConnectionFile = exports.connection_file = exports.config = void 0;
 const util = __importStar(require("../utils"));
 //connect to the config file
 exports.config = util.processFileFromDir("./config.json");
@@ -32,7 +32,6 @@ exports.doctorAdmin = exports.config.doctorAdmin;
 exports.orgMSPID_pat = exports.config.orgMSPID_pat;
 exports.orgMSPID_doc = exports.config.orgMSPID_doc;
 // connect to the connection file
-exports.ccp = util.processFileFromDir(exports.connection_file);
 exports.ccpOrg1 = util.processFileFromDir(exports.org1ConnectionFile);
 exports.ccpOrg2 = util.processFileFromDir(exports.org2ConnectionFile);
 //# sourceMappingURL=index.js.map

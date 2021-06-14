@@ -12,35 +12,22 @@ export interface IReport {
 
 @Object()
 export class Report {
-    /**
-     *
-     * Report
-     *
-     * Constructor for a Report object.
-     *
-     * @param args.licenseId - the license number of the Doctor
-     * @param args.name - name of Doctor
-     * @param args.age - age of Doctor
-     * @param args.phNo - phone number of Doctor
-     * @returns - doctor object
-     */
-
-    // @Property()
+    @Property()
     public reportId: string;
 
-    // @Property()
+    @Property()
     public patientId: string;
 
-    // @Property()
+    @Property()
     public isAsked: string;
 
-    // @Property()
+    @Property()
     public isGiven: string;
 
-    // @Property()
+    @Property()
     public report: string;
 
-    // @Property()
+    @Property()
     public type: string;
 
     constructor(

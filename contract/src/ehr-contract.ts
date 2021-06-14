@@ -46,7 +46,6 @@ export class EHRContract extends Contract {
     async readMyAsset(ctx: Context, args: string) {
         const _args = JSON.parse(args);
         const myAssetId = _args.patientId;
-        console.log("HELLO");
         console.log(myAssetId);
         const exists = await this.myAssetExists(ctx, myAssetId);
         if (!exists) {
@@ -105,24 +104,10 @@ export class EHRContract extends Contract {
         return JSON.parse(text);
     }
 
-    /**
-     *
-     * createPatient
-     *
-     * Creates a voter in the world state, based on the args given.
-     *
-     * @param args.adharNo - the adhar number of the patient
-     * @param args.name - name of patient
-     * @param args.age - age of patient
-     * @param args.phNo - phone number of patient
-     * @returns - nothing - but updates the world state with a new patient
-     */
     @Transaction()
     @Returns("Success")
-    async create(ctx: Context, args: string): Promise<Success> {
+    async createPatient(ctx: Context, args: string): Promise<Success> {
         const _args = JSON.parse(args);
-
-        //create a new Patient
         const newPatient: Patient = new Patient(
             _args.patientId,
             _args.adharNo,
@@ -130,15 +115,12 @@ export class EHRContract extends Contract {
             _args.age,
             _args.phNo
         );
-
-        //update state with new patient
         await ctx.stub.putState(
             newPatient.patientId,
             Buffer.from(JSON.stringify(newPatient))
         );
-
         const response: Success = {
-            Success: `Patient with adharNo ${newPatient.adharNo} has been successfully updated in the world state of the EHR blockchain network`,
+            Success: `Patient with name ${newPatient.name} has been successfully updated in the world state of the EHR blockchain network`,
         };
         console.log(response);
         return response;
@@ -148,8 +130,6 @@ export class EHRContract extends Contract {
     @Returns("Success")
     async createDoctor(ctx: Context, args: string): Promise<Success> {
         const _args = JSON.parse(args);
-
-        //create a new Doctor
         const newDoctor = new Doctor(
             _args.doctorId,
             _args.licenseId,
@@ -157,15 +137,12 @@ export class EHRContract extends Contract {
             _args.age,
             _args.phNo
         );
-
-        //update state with new Doctor
         await ctx.stub.putState(
             newDoctor.doctorId,
             Buffer.from(JSON.stringify(newDoctor))
         );
-
         const response: Success = {
-            Success: `Doctor with licenseId ${newDoctor.licenseId} is updated in the world state of the EHR blockchain network`,
+            Success: `Doctor with name ${newDoctor.name} is updated in the world state of the EHR blockchain network`,
         };
         return response;
     }
@@ -174,15 +151,12 @@ export class EHRContract extends Contract {
     @Returns("Success")
     async createReport(ctx: Context, args: string): Promise<Success> {
         const _args = JSON.parse(args);
-
-        //check if the patient exists or not
         const myAssetId = _args.patientId;
         const exists = await this.myAssetExists(ctx, myAssetId);
         if (!exists) {
             throw new Error(`The patient ${myAssetId} does not exist`);
         }
         const report = "abcdefghijklmnopqrstuvwxyz";
-        //create a new Report Record
         const newReport = new Report(
             _args.reportId,
             _args.patientId,
@@ -190,8 +164,6 @@ export class EHRContract extends Contract {
             "0",
             "0"
         );
-
-        //update state with new patient
         await ctx.stub.putState(
             newReport.reportId,
             Buffer.from(JSON.stringify(newReport))
@@ -226,8 +198,7 @@ export class EHRContract extends Contract {
         ctx: Context,
         queryString: string
     ): Promise<string> {
-        console.log("Query String");
-        console.log(JSON.stringify(queryString));
+        console.log("Query String: ", JSON.stringify(queryString));
         const resultsIterator = await ctx.stub.getQueryResult(queryString);
         const allResults = [];
 
@@ -263,7 +234,7 @@ export class EHRContract extends Contract {
     async checkExist(ctx: Context, query: string): Promise<string> {
         const queryString = {
             selector: {
-                adharNo: query,
+                name: query,
             },
         };
         const queryResults = await this.queryWithQueryString(

@@ -113,7 +113,7 @@ async function connectToNetwork(userName, orgName) {
         const network = await gateway.getNetwork("mychannel");
         console.log("Connected to mychannel. ");
         // Get the contract we have installed on the peer
-        const contract = network.getContract("contract");
+        const contract = network.getContract("ehr");
         const networkObj = {
             contract: contract,
             network: network,

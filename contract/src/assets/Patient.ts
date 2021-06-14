@@ -10,34 +10,22 @@ export interface IPatient {
 }
 @Object()
 export class Patient {
-    /**
-     *
-     * Patient
-     *
-     * Constructor for a Patient object.    *
-     *
-     * @param args.adharNo - the adhar number of the patient
-     * @param args.name - name of patient
-     * @param args.age - age of patient
-     * @param args.phNo - phone number of patient
-     * @returns - patient object
-     */
-    // @Property()
+    @Property()
     public patientId: string;
 
-    // @Property()
+    @Property()
     public adharNo: string;
 
-    // @Property()
+    @Property()
     public name: string;
 
-    // @Property()
+    @Property()
     public age: string;
 
-    // @Property()
+    @Property()
     public phNo: string;
 
-    // @Property()
+    @Property()
     public type: string;
 
     constructor(

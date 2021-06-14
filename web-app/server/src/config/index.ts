@@ -12,6 +12,5 @@ export const orgMSPID_pat = config.orgMSPID_pat;
 export const orgMSPID_doc = config.orgMSPID_doc;
 
 // connect to the connection file
-export const ccp = util.processFileFromDir(connection_file);
 export const ccpOrg1 = util.processFileFromDir(org1ConnectionFile);
 export const ccpOrg2 = util.processFileFromDir(org2ConnectionFile);

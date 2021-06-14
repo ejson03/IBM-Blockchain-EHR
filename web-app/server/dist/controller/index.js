@@ -92,25 +92,17 @@ exports.validatePatient = async (req, res) => {
 };
 //get Doctor info, create doctor object, and update state with their
 exports.registerDoctor = async (req, res) => {
-    console.log("req.body: ", req.body);
-    console.log(req.body);
     const licenseId = req.body.licenseId;
     const doctorId = Date.now().toString();
     req.body.doctorId = doctorId;
     const KVPairs = util.generateKVAttributes(req.body);
     //first create the identity for the patient and add to walconst
     const response = await network.register(req.body.name, KVPairs, doctorOrg);
-    console.log("response from registerDoctor: ");
-    console.log(response);
     if (response.error) {
         res.send(response.error);
     }
     else {
-        console.log("req.body.licenseId");
-        console.log(req.body.licenseId);
-        const networkObj = await network.connectToNetwork(doctorId, doctorOrg);
-        console.log("networkobj: ");
-        console.log(networkObj);
+        const networkObj = await network.connectToNetwork(req.body.name, doctorOrg);
         if (networkObj.error) {
             res.send(networkObj.error);
         }
