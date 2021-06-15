@@ -1,12 +1,9 @@
 {
-    "connectionFile": "connection.json",
     "connectionOrg1": "org1.json",
     "connectionOrg2": "org2.json",
     "patientAdmin": "Org1 Admin",
     "doctorAdmin": "Org2 Admin",
-    "appAdminSecret": "adminpw",
     "orgMSPID_pat": "Org1MSP",
     "orgMSPID_doc": "Org2MSP",
-    "caName": "ca.org1.example.com",
     "gatewayDiscovery": { "enabled": true, "asLocalhost": true }
   }

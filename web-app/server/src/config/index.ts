@@ -2,7 +2,6 @@ import * as util from "../utils";
 
 //connect to the config file
 export const config = util.processFileFromDir("./config.json");
-export const connection_file = config.connectionFile;
 export const org1ConnectionFile = config.connectionOrg1;
 export const org2ConnectionFile = config.connectionOrg2;
 export const gatewayDiscovery = config.gatewayDiscovery;

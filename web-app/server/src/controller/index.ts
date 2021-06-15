@@ -27,8 +27,10 @@ export const registerPatient = async (req: Request, res: Response) => {
   const patientId = Date.now().toString();
   req.body.patientId = patientId;
   const KVPairs = util.generateKVAttributes(req.body);
-  //check weather he is registered already or not
-  let networkObj = await network.connectToNetwork("admin", patientOrg);
+  let networkObj = await network.connectToNetwork(
+    config.patientAdmin,
+    patientOrg
+  );
   const check = await network.invoke(
     networkObj,
     true,

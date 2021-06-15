@@ -11,8 +11,9 @@
     "build:watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "start": "node ./dist/app.js",
-    "create": "node ./dist/app.js"
-  },
+    "create": "node ./dist/app.js",
+    "dev": "npm run build && npm start"
+    },
   "dependencies": {
     "@types/morgan": "^1.9.2",
     "body-parser": "^1.19.0",

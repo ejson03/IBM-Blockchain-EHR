@@ -37,6 +37,10 @@ export function getAdminByOrg(orgName: string) {
   return orgName == "Org1" ? config.patientAdmin : config.doctorAdmin;
 }
 
+export function getCAAdminByOrg(orgName: string) {
+  return orgName == "Org1" ? "Org1 CA Admin" : "Org2 CA Admin";
+}
+
 export function getAffiliation(orgName: string) {
   return orgName == "Org1" ? "org1.department1" : "org2.departemnt1";
 }
@@ -45,15 +49,15 @@ export function getCaInfo(orgName: string) {
   return orgName == "Org1"
     ? {
         url: config.ccpOrg1.certificateAuthorities[
-          "org1ca-api.127-0-0-1.nip.io:8081"
+          "org1ca-api.127-0-0-1.nip.io:8080"
         ].url,
-        // name: "Org1 CA",
+        name: "Org1 CA Admin",
       }
     : {
         url: config.ccpOrg2.certificateAuthorities[
-          "org2ca-api.127-0-0-1.nip.io:8081"
+          "org2ca-api.127-0-0-1.nip.io:8080"
         ].url,
-        // name: "Org2 CA",
+        name: "Org2 CA Admin",
       };
 }
 
@@ -86,7 +90,6 @@ export function getCA(orgName: string) {
 export async function connectToNetwork(userName: string, orgName: string) {
   try {
     const wallet = await connectToWallet(orgName);
-    console.log(await wallet.list());
     const ifUser = await userExists(userName, wallet);
     if (!ifUser) {
       return {
@@ -100,7 +103,7 @@ export async function connectToNetwork(userName: string, orgName: string) {
     }
     const gateway = await connectToGateway(wallet, userName, orgName);
     // Connect to our local fabric
-    const network = await gateway.getNetwork("mychannel");
+    const network = await gateway.getNetwork("channel1");
     console.log("Connected to mychannel. ");
     // Get the contract we have installed on the peer
     const contract = network.getContract("ehr");
@@ -192,11 +195,11 @@ export async function createUser(
   wallet: Wallet
 ) {
   const ca = getCA(orgName);
-  // const adminName = getAdminByOrg(orgName);
-  const adminId = await wallet.get("admin");
+  const adminName = getCAAdminByOrg(orgName);
+  const adminId = await wallet.get(adminName);
   if (!adminId) throw new Error("Failed to get admin");
   const provider = wallet.getProviderRegistry().getProvider(adminId.type);
-  const adminUser = await provider.getUserContext(adminId, "admin");
+  const adminUser = await provider.getUserContext(adminId, adminName);
   let secret;
   try {
     secret = await ca.register(
@@ -244,7 +247,7 @@ export async function register(
       };
     }
     // Check to see if we've already enrolled the admin user.
-    const ifAdmin = await userExists("admin", wallet);
+    const ifAdmin = await userExists(getAdminByOrg(orgName), wallet);
     if (!ifAdmin) {
       return {
         error: `An identity for the admin user ${config.patientAdmin} does not exist in the wallet. `,
@@ -254,7 +257,6 @@ export async function register(
     try {
       throw new Error(result.message);
     } catch {
-      console.log(`Successfully registered Patient ${username}.`);
       const response = `Successfully registered ${getTypeByOrg(
         orgName
       )} ${username}`;
